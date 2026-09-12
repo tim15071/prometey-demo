@@ -1,0 +1,1 @@
+{"extent": [-590, -625, 590, 625], "step": 2.5, "columns": 472, "rows": 500, "channels": ["inferred grass density", "building proximity lighting mask", "road class", "opaque"], "method": "Visual detail mask, not surveyed vegetation; footprints, water and model roads excluded."}
