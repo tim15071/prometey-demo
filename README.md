@@ -2,7 +2,11 @@
 
 Публичная сборка сайта СНТ «Прометей» для просмотра и согласования.
 Файлы исходного проекта и локальный исследовательский архив сюда не входят.
-Видеонаблюдение подготовлено без трансляций. Официальные контакты и документы ожидают заполнения.
+Раздел «Камеры» подготовлен без трансляций. Контакты, документы, новости и другие материалы редактируются через Pages CMS.
+Вход и памятка: https://tim15071.github.io/prometey-demo/?page=manage
+Редактор: https://app.pagescms.org — репозиторий prometey-demo, ветка codex/demo.
+Конфигурация форм: .pages.yml. Содержимое: content/*.json. Вложения: uploads/.
+Перед обновлением дизайна получите изменения ветки. Не заменяйте content/ и uploads/ локальными начальными файлами.
 
 Геометрия © OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright
 Данные высот Mapzen / Tilezen Terrain Tiles: https://github.com/tilezen/joerd/blob/master/docs/attribution.md

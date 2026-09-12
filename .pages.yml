@@ -1,0 +1,263 @@
+media:
+  - name: documents
+    label: Файлы документов
+    input: uploads/documents
+    output: /prometey-demo/uploads/documents
+    extensions: [pdf, doc, docx, xls, xlsx, odt, ods, txt, csv]
+    rename: safe
+  - name: images
+    label: Фотографии
+    input: uploads/images
+    output: /prometey-demo/uploads/images
+    extensions: [jpg, jpeg, png, webp]
+    rename: safe
+
+content:
+  - name: news
+    label: Новости и объявления
+    type: file
+    path: content/news.json
+    format: json
+    fields:
+      - name: items
+        label: Новости
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{title}'
+        fields:
+          - name: id
+            type: uuid
+            hidden: true
+          - name: title
+            label: Заголовок
+            type: string
+            required: true
+          - name: date
+            label: Дата публикации
+            type: date
+            options:
+              format: yyyy-MM-dd
+          - name: published
+            label: Показывать на сайте
+            type: boolean
+            default: false
+            description: Включите и сохраните, чтобы новость появилась на сайте. Выключение убирает её из ленты; содержимое остаётся в публичном хранилище.
+          - name: pinned
+            label: Важное — показывать первым
+            type: boolean
+            default: false
+          - name: image
+            label: Фотография обложки
+            type: image
+            options:
+              media: images
+          - name: body
+            label: Текст новости
+            type: rich-text
+            required: true
+            options:
+              format: markdown
+              media: images
+              switcher: false
+
+  - name: documents
+    label: Документы
+    type: file
+    path: content/documents.json
+    format: json
+    fields:
+      - name: items
+        label: Документы для жителей
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{title}'
+        fields:
+          - name: id
+            type: uuid
+            hidden: true
+          - name: title
+            label: Название документа
+            type: string
+            required: true
+          - name: category
+            label: Категория
+            type: select
+            required: true
+            default: Бланки
+            options:
+              values: [Устав, Собрания, Финансы, Бланки, Другое]
+          - name: date
+            label: Дата документа
+            type: date
+            options:
+              format: yyyy-MM-dd
+          - name: description
+            label: Краткое пояснение
+            type: text
+          - name: url
+            label: Загрузить или выбрать файл
+            type: file
+            required: true
+            options:
+              media: documents
+            description: PDF, Word или таблица. Рекомендуемый размер до 10 МБ. Загружайте только документы для открытого доступа.
+          - name: published
+            label: Показывать на сайте
+            type: boolean
+            default: false
+            description: Выключение убирает ссылку из раздела. Сам файл удаляется отдельно в «Файлы документов»; история хранилища сохраняется.
+
+  - name: meetings
+    label: Собрания
+    type: file
+    path: content/meetings.json
+    format: json
+    fields:
+      - name: items
+        label: Собрания товарищества
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{title}'
+        fields:
+          - name: id
+            type: uuid
+            hidden: true
+          - name: title
+            label: Название
+            type: string
+            required: true
+          - name: date
+            label: Дата собрания
+            type: date
+            options:
+              format: yyyy-MM-dd
+          - name: place
+            label: Время и место
+            type: string
+          - name: agenda
+            label: Повестка и пояснения
+            type: text
+          - name: published
+            label: Показывать на сайте
+            type: boolean
+            default: false
+
+  - name: organization
+    label: Контакты и правление
+    type: file
+    path: content/organization.json
+    format: json
+    fields:
+      - name: address
+        label: Адрес
+        type: string
+        required: true
+      - name: locationShort
+        label: Короткое название расположения
+        type: string
+        required: true
+      - name: about
+        label: О товариществе
+        type: text
+        required: true
+      - name: phone
+        label: Телефон правления
+        type: string
+      - name: email
+        label: Электронная почта
+        type: string
+      - name: reception
+        label: Время и место приёма
+        type: text
+      - name: board
+        label: Состав правления
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{name}'
+        fields:
+          - name: name
+            label: Имя
+            type: string
+            required: true
+          - name: role
+            label: Должность
+            type: string
+            required: true
+
+  - name: payments
+    label: Взносы и реквизиты
+    type: file
+    path: content/payments.json
+    format: json
+    fields:
+      - name: published
+        label: Показывать реквизиты на сайте
+        type: boolean
+        default: false
+        description: Перед включением заполните получателя, ИНН, банк, БИК и расчётный счёт. Проверьте реквизиты с правлением.
+      - name: details
+        label: Размер взносов, сроки и пояснения
+        type: rich-text
+        options:
+          format: markdown
+          media: false
+          switcher: false
+      - name: recipient
+        label: Получатель
+        type: string
+      - name: inn
+        label: ИНН
+        type: string
+        pattern:
+          regex: '^$|^([0-9]{10}|[0-9]{12})$'
+          message: ИНН должен содержать 10 или 12 цифр.
+      - name: kpp
+        label: КПП
+        type: string
+        pattern: '^$|^[0-9]{9}$'
+      - name: bank
+        label: Банк
+        type: string
+      - name: bik
+        label: БИК
+        type: string
+        pattern: '^$|^[0-9]{9}$'
+      - name: account
+        label: Расчётный счёт
+        type: string
+        pattern: '^$|^[0-9]{20}$'
+      - name: correspondent
+        label: Корреспондентский счёт
+        type: string
+        pattern: '^$|^[0-9]{20}$'
+
+  - name: questions
+    label: Вопросы и ответы
+    type: file
+    path: content/questions.json
+    format: json
+    fields:
+      - name: items
+        label: Ответы для жителей
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{question}'
+        fields:
+          - name: question
+            label: Вопрос
+            type: string
+            required: true
+          - name: answer
+            label: Ответ
+            type: text
+            required: true
