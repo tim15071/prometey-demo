@@ -1,1 +1,13 @@
-{ "items": [] }
+{
+  "items": [
+    {
+      "id": "2cbce8e9-cb33-4676-bfe1-1b024e3beadc",
+      "title": "Как пользоваться сайтом «Прометей»",
+      "category": "Другое",
+      "date": "2026-09-12",
+      "description": "Памятка по разделам, скачиванию файлов и управлению сайтом. Не является документом правления.",
+      "url": "/prometey-demo/uploads/documents/site-guide.txt",
+      "published": true
+    }
+  ]
+}
