@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "gate",
+      "title": "Ворота",
+      "description": "Въезд в товарищество",
+      "published": true,
+      "streamUrl": ""
+    }
+  ]
+}

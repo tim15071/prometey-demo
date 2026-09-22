@@ -13,6 +13,40 @@ media:
     rename: safe
 
 content:
+  - name: cameras
+    label: Камеры
+    type: file
+    path: content/cameras.json
+    format: json
+    fields:
+      - name: items
+        label: Камеры товарищества
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: '{title}'
+        fields:
+          - name: id
+            type: uuid
+            hidden: true
+          - name: title
+            label: Название камеры
+            type: string
+            required: true
+          - name: description
+            label: Что показывает камера
+            type: string
+          - name: streamUrl
+            label: Публичная ссылка HLS
+            type: string
+            description: После настройки видеосервера укажите HTTPS-ссылку с окончанием .m3u8, без пароля и параметров. RTSP, облачный ID и данные входа сюда не добавляйте. Все поля хранятся публично. Пустая ссылка показывает статус ожидания подключения. До включения согласуйте открытый доступ с правлением.
+          - name: published
+            label: Показывать камеру на сайте
+            type: boolean
+            default: false
+            description: Скрывает карточку, но не закрывает сам видеопоток. Ограничения просмотра настраиваются на видеосервере.
+
   - name: news
     label: Новости и объявления
     type: file
