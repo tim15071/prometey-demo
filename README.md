@@ -12,5 +12,6 @@
 Данные высот Mapzen / Tilezen Terrain Tiles: https://github.com/tilezen/joerd/blob/master/docs/attribution.md
 Материалы и HDR Poly Haven, CC0: https://polyhaven.com/license
 Шрифты Unbounded / Golos Text, SIL Open Font License.
-Пейзажи и текстура ветки — художественные изображения, созданные с помощью ИИ.
+Фотографии местности предоставлены владельцем сайта: https://cloud.mail.ru/public/chNV/mVnMuS4BL
+Мыши-помощники, запасные иллюстрации пейзажей и текстура ветки созданы с помощью ИИ.
 3D — реконструкция; высоты, фасады и часть деталей приблизительны.
