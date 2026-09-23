@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RelayGate, mediaPath, readMedia, startGate } from './relay-gate.mjs';
+import { RelayGate, mediaPath, readMedia, startGate, validateTrialSeconds } from './relay-gate.mjs';
 const sample = n => ({ ok: true, ended: false, mediaSequence: n, lastSegmentSequence: n + 5 });
 test('requires progress, blocks stopped relay and deadline, not merely HTTP success', () => {
   const g = new RelayGate(30000);
@@ -35,5 +35,16 @@ test('proxy pins loopback and rejects redirects/non-200/late data', async () => 
 });
 test('cannot start without explicit finite approval; no requests occur', async () => {
   await assert.rejects(startGate({ seconds: 300 }), /approved/);
-  await assert.rejects(startGate({ seconds: 301, approved: true }), /approved/);
+  for (const seconds of [29, 3601, Infinity, 3600.5, '3600']) await assert.rejects(startGate({ seconds, approved: true }), /approved/);
+  assert.equal(validateTrialSeconds(3600, true), 3600);
+});
+test('one-hour gate expires at exact boundary even after fresh progress', () => {
+  const end = 3600 * 1000;
+  const g = new RelayGate(end);
+  g.observe(sample(1), end - 3000);
+  g.observe(sample(2), end - 1000);
+  assert.deepEqual(g.state(end - 1), { ready: true, reason: 'ready', remainingSeconds: 1 });
+  assert.deepEqual(g.state(end), { ready: false, reason: 'test_expired', remainingSeconds: 0 });
+  g.observe(sample(3), end + 1000);
+  assert.equal(g.state(end + 1000).ready, false);
 });

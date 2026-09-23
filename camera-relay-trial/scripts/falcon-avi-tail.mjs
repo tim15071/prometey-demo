@@ -85,24 +85,39 @@ function integer(value, name, min, max) {
   return number;
 }
 
+// The hour mode is an explicit finite test: 3600 seconds viewing + at most
+// 300 seconds preparation. It is not permission for rotation or 24/7 recording.
+export function finiteTestSeconds(value, { min = 1, approvedHourTest = false } = {}) {
+  return integer(value, 'wall deadline', min, approvedHourTest ? 3900 : 300);
+}
+
+export function hourTestApproval(value) {
+  if (value === undefined) return false;
+  if (value !== 'true') throw new TailError('Hour test approval must be explicitly true.');
+  return true;
+}
+
 export function parseArguments(args) {
   const values = new Map();
-  const allowed = new Set(['--input', '--data-offset', '--chunk-padding', '--max-chunk-bytes', '--idle-ms', '--max-seconds', '--poll-ms']);
+  const allowed = new Set(['--input', '--data-offset', '--chunk-padding', '--max-chunk-bytes', '--max-source-bytes', '--idle-ms', '--max-seconds', '--poll-ms', '--approved-hour-test']);
   for (let i = 0; i < args.length; i += 2) {
     if (!allowed.has(args[i]) || values.has(args[i]) || args[i + 1] === undefined) {
-      throw new TailError('Use --input <local AVI> and optional --data-offset, --chunk-padding, --max-chunk-bytes, --idle-ms, --max-seconds, --poll-ms.');
+      throw new TailError('Use --input <local AVI> and supported finite-test options.');
     }
     values.set(args[i], args[i + 1]);
   }
   const input = values.get('--input');
   if (!isLocalPath(input) || extname(input).toLowerCase() !== '.avi') throw new TailError('Input must be an absolute local AVI file path, not a URL or network share.');
+  const approvedHourTest = hourTestApproval(values.get('--approved-hour-test'));
   return {
     input,
     dataOffset: integer(values.get('--data-offset') ?? 2048, 'data offset', 0, 1024 * 1024 * 1024),
     chunkPadding: integer(values.get('--chunk-padding') ?? 0, 'chunk padding', 0, 1),
     maxChunkBytes: integer(values.get('--max-chunk-bytes') ?? 8 * 1024 * 1024, 'chunk limit', 4, 32 * 1024 * 1024),
+    maxSourceBytes: integer(values.get('--max-source-bytes') ?? 1024 * 1024 * 1024, 'source size limit', 2048, 1024 * 1024 * 1024),
     idleMs: integer(values.get('--idle-ms') ?? 15000, 'idle deadline', 100, 300000),
-    maxSeconds: integer(values.get('--max-seconds') ?? 120, 'wall deadline', 1, 86400),
+    maxSeconds: finiteTestSeconds(values.get('--max-seconds') ?? 120, { approvedHourTest }),
+    approvedHourTest,
     pollMs: integer(values.get('--poll-ms') ?? 100, 'poll interval', 1, 2000),
   };
 }
@@ -125,6 +140,8 @@ function writeWithBackpressure(stream, data, signal) {
 }
 
 export async function tailAvi(options, { output = process.stdout, signal: externalSignal } = {}) {
+  finiteTestSeconds(options.maxSeconds, { approvedHourTest: options.approvedHourTest === true });
+  const maxSourceBytes = integer(options.maxSourceBytes ?? 1024 * 1024 * 1024, 'source size limit', 2048, 1024 * 1024 * 1024);
   const source = await realpath(options.input);
   if (!isLocalPath(source)) throw new TailError('Resolved input is not a local file.');
   const handle = await open(source, 'r');
@@ -145,6 +162,7 @@ export async function tailAvi(options, { output = process.stdout, signal: extern
       controller.signal.throwIfAborted();
       // Query the open handle. A directory listing can show stale size while this writer is open.
       const size = (await handle.stat()).size;
+      if (size > maxSourceBytes) throw new TailError('Source exceeds the finite test size limit; native recording must be stopped independently.');
       if (size < observedSize) throw new TailError('Source was truncated; automatic rollover is disabled.');
       observedSize = size;
       const { bytesRead } = await handle.read(buffer, 0, buffer.length, position);

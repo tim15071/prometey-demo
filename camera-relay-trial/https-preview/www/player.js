@@ -12,6 +12,14 @@ let lastTime = -1;
 let lastProgress = 0;
 let networkFailureAt = 0;
 function state(text, live = false) { status.textContent = text; status.dataset.live = String(live); }
+function countdown(seconds) {
+  if (!Number.isFinite(seconds)) return '';
+  const value = Math.max(0, Math.ceil(seconds));
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
+  const rest = value % 60;
+  return `Осталось ${hours ? `${hours}:` : ''}${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+}
 function stop(text) {
   attempt++; requested = false; hls?.destroy(); hls = undefined;
   video.pause(); video.removeAttribute('src'); video.load();
@@ -23,7 +31,7 @@ async function health() {
     const response = await fetch('/healthz', { cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.timeout(2000) });
     const data = await response.json();
     networkFailureAt = 0;
-    remaining.textContent = Number.isFinite(data.remainingSeconds) ? `Осталось до ${data.remainingSeconds} с` : '';
+    remaining.textContent = countdown(data.remainingSeconds);
     if (!response.ok || !data.ready) { if (requested) stop(data.reason === 'test_expired' ? 'Время проверки завершилось.' : 'Живое видео сейчас не поступает.'); return false; }
     return true;
   } catch {

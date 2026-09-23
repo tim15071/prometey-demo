@@ -70,12 +70,27 @@ const endOnly = new AviChunkParser();
 assert.deepEqual(endOnly.push(chunk('idx1', Buffer.alloc(0), 0xffffffff)), []);
 assert.equal(endOnly.ended, true); // Index size is irrelevant: it is never buffered or emitted.
 assert.equal(parseArguments(['--input', resolve('fixture.avi')]).maxSeconds, 120);
+assert.equal(parseArguments(['--input', resolve('fixture.avi')]).maxSourceBytes, 1024 ** 3);
+assert.equal(parseArguments(['--input', resolve('fixture.avi'), '--max-seconds', '3900', '--approved-hour-test', 'true']).maxSeconds, 3900);
+// Synthetic one-hour chunk count at 25 FPS. This tests counters/index handling,
+// not a real hour of camera uptime or the plugin's own file rotation policy.
+const hourParser = new AviChunkParser();
+const hourBatch = Buffer.concat(Array.from({ length: 1000 }, () => chunk('00dc', videoB)));
+for (let batch = 0; batch < 90; batch++) assert.equal(hourParser.push(hourBatch).length, 1000);
+assert.equal(hourParser.videoChunks, 90000);
+assert.equal(hourParser.chunkOffset, 2048 + 90000 * (8 + videoB.length));
+hourParser.push(chunk('idx1', Buffer.alloc(0), 90000 * 16));
+assert.equal(hourParser.ended, true);
 for (const bad of [
   ['--input', 'https://example.org/video.avi'],
   ['--input', '//server/share/video.avi'],
   ['--input', '\\\\server\\share\\video.avi'],
   ['--input', 'relative.avi'],
   ['--input', resolve('fixture.avi'), '--max-seconds', '0'],
+  ['--input', resolve('fixture.avi'), '--max-seconds', '301'],
+  ['--input', resolve('fixture.avi'), '--max-seconds', '3901', '--approved-hour-test', 'true'],
+  ['--input', resolve('fixture.avi'), '--max-seconds', '3600', '--approved-hour-test', 'false'],
+  ['--input', resolve('fixture.avi'), '--max-source-bytes', String(1024 ** 3 + 1)],
   ['--input', resolve('fixture.avi'), '--data-offset', '-1'],
   ['--input', resolve('fixture.avi'), '--max-chunk-bytes', '9999999999'],
   ['--input', resolve('fixture.avi'), '--input', resolve('other.avi')],
@@ -101,6 +116,10 @@ try {
   const empty = join(directory, 'idle.avi');
   await writeFile(empty, Buffer.alloc(2048));
   await assert.rejects(tailAvi(parseArguments(['--input', empty, '--idle-ms', '100', '--poll-ms', '5']), { output: new Writable({ write(data, encoding, done) { done(); } }) }), /idle deadline/);
+
+  const tooLarge = join(directory, 'too-large.avi');
+  await writeFile(tooLarge, Buffer.alloc(2049));
+  await assert.rejects(tailAvi(parseArguments(['--input', tooLarge, '--max-source-bytes', '2048']), { output: new Writable({ write(data, encoding, done) { done(); } }) }), /source.*size limit/i);
 
   const blocked = new Writable({ write() { /* Intentionally blocked downstream consumer. */ } });
   const startedAt = performance.now();

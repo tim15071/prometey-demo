@@ -63,8 +63,13 @@ export async function readMedia(path, { deadlineMs, fetchImpl = fetch, now = Dat
   finally { clearTimeout(timeout); controller.abort(); }
 }
 
+export function validateTrialSeconds(seconds, approved = false) {
+  if (!approved || !Number.isInteger(seconds) || seconds < 30 || seconds > 3600) throw new Error('Explicit approved finite protected test required (30..3600 seconds).');
+  return seconds;
+}
+
 export async function startGate({ seconds, approved = false }) {
-  if (!approved || !Number.isInteger(seconds) || seconds < 30 || seconds > 300) throw new Error('Explicit approved finite test required.');
+  validateTrialSeconds(seconds, approved);
   const deadlineMs = Date.now() + seconds * 1000;
   const gate = new RelayGate(deadlineMs);
   let closed = false;
@@ -110,6 +115,6 @@ export async function startGate({ seconds, approved = false }) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  if (args.length !== 3 || args[0] !== '--approved-public-test' || args[1] !== '--seconds' || !/^\d+$/u.test(args[2])) throw new Error('Use only --approved-public-test --seconds 30..300 after approval.');
+  if (args.length !== 3 || args[0] !== '--approved-protected-test' || args[1] !== '--seconds' || !/^\d+$/u.test(args[2])) throw new Error('Use only --approved-protected-test --seconds 30..3600 after approval.');
   await startGate({ approved: true, seconds: Number(args[2]) });
 }

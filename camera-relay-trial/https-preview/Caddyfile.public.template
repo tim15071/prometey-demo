@@ -18,18 +18,27 @@ https://{$TRIAL_PUBLIC_IPV4} {
 		Referrer-Policy "no-referrer"
 		Content-Security-Policy "frame-ancestors 'none'"
 	}
-	handle_path /hls/* {
-		reverse_proxy 127.0.0.1:8899
-	}
-	handle /healthz {
-		reverse_proxy 127.0.0.1:8899
-	}
 	@preview path / /index.html /player.js /style.css /hls.min.js
-	handle @preview {
-		root * ./www
-		file_server
-	}
-	handle {
-		respond "Not available." 503
+	route {
+		basic_auth bcrypt "Prometey preview" {
+			viewer {$TRIAL_VIEWER_BCRYPT}
+		}
+		handle_path /hls/* {
+			reverse_proxy 127.0.0.1:8899 {
+				header_up -Authorization
+			}
+		}
+		handle /healthz {
+			reverse_proxy 127.0.0.1:8899 {
+				header_up -Authorization
+			}
+		}
+		handle @preview {
+			root * ./www
+			file_server
+		}
+		handle {
+			respond "Not available." 503
+		}
 	}
 }

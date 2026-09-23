@@ -5,17 +5,26 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, readdir, realpath, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { finiteTestSeconds, hourTestApproval } from './falcon-avi-tail.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const args = process.argv.slice(2);
+export function parseLiveHlsArguments(args) {
 const options = {};
 for (let i = 0; i < args.length; i += 2) {
-  if (!['--input', '--output', '--ffmpeg', '--seconds'].includes(args[i]) || !args[i + 1]) throw new Error('Expected --input --output --ffmpeg [--seconds]');
+  if (!['--input', '--output', '--ffmpeg', '--seconds', '--fps', '--approved-hour-test'].includes(args[i]) || !args[i + 1] || Object.hasOwn(options, args[i].slice(2))) throw new Error('Expected --input --output --ffmpeg and supported finite-test options');
   options[args[i].slice(2)] = args[i + 1];
 }
 for (const name of ['input', 'output', 'ffmpeg']) if (!isAbsolute(options[name] || '') || /^(?:\\\\|\/\/)/.test(options[name])) throw new Error(`${name} must be an absolute local path`);
-const seconds = Number(options.seconds || 180);
-if (!Number.isInteger(seconds) || seconds < 30 || seconds > 300) throw new Error('Duration must be 30–300 seconds');
+options.approvedHourTest = hourTestApproval(options['approved-hour-test']);
+options.seconds = finiteTestSeconds(options.seconds ?? 180, { min: 30, approvedHourTest: options.approvedHourTest });
+if (!/^\d+$/u.test(String(options.fps ?? 25)) || Number(options.fps ?? 25) < 1 || Number(options.fps ?? 25) > 60) throw new Error('FPS must be an integer from 1 to 60, verified from the source.');
+options.fps = Number(options.fps ?? 25);
+return options;
+}
+
+async function main() {
+const options = parseLiveHlsArguments(process.argv.slice(2));
+const seconds = options.seconds;
 const outsideRoot = path => { const rel=relative(root,path); return rel==='..' || rel.startsWith(`..${sep}`) || isAbsolute(rel); };
 if (!outsideRoot(resolve(options.output))) throw new Error('Private output must be outside the repository');
 await mkdir(options.output, { recursive: true });
@@ -64,11 +73,11 @@ deadline = setTimeout(stop, seconds * 1000);
 try {
   ffmpeg = spawn(options.ffmpeg, [
     '-hide_banner', '-loglevel', 'error', '-nostdin', '-fflags', '+genpts',
-    '-f', 'h264', '-r', '25', '-i', 'pipe:0', '-map', '0:v:0', '-an', '-c:v', 'copy',
+    '-f', 'h264', '-r', String(options.fps), '-i', 'pipe:0', '-map', '0:v:0', '-an', '-c:v', 'copy',
     '-f', 'hls', '-hls_time', '2', '-hls_list_size', '6', '-hls_flags', 'delete_segments+temp_file',
     '-hls_segment_filename', join(options.output, 'chunk-%06d.ts'), join(options.output, 'index.m3u8'),
   ], { windowsHide: true, stdio: ['pipe', 'ignore', 'pipe'] });
-  tail = spawn(process.execPath, [join(root, 'scripts/falcon-avi-tail.mjs'), '--input', options.input, '--idle-ms', '15000', '--max-seconds', String(seconds)], {
+  tail = spawn(process.execPath, [join(root, 'scripts/falcon-avi-tail.mjs'), '--input', options.input, '--idle-ms', '15000', '--max-seconds', String(seconds), ...(options.approvedHourTest ? ['--approved-hour-test', 'true'] : [])], {
     windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let warnings = 0;
@@ -83,3 +92,6 @@ try {
   console.log('Local prototype: http://127.0.0.1:8898/index.m3u8 (finite test; source readiness not yet confirmed)');
   await new Promise(resolveExit => ffmpeg.once('close', code => { if(code && !closed) process.exitCode=1; console.log(`Converter stopped (${code ?? 'signal'}).`); resolveExit(); }));
 } finally { stop(); diagnostic.end(); }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

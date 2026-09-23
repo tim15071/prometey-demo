@@ -7,7 +7,8 @@ param(
     [long]$StartTimeUtcTicks = 0,
     [int]$Seconds = 0,
     [string]$ExpectedComputerName,
-    [switch]$DedicatedVps
+    [switch]$DedicatedVps,
+    [switch]$ApprovedHourTest
 )
 
 function Get-FalconWatchdogSpec {
@@ -19,7 +20,8 @@ function Get-FalconWatchdogSpec {
         [string]$ExpectedHost,
         [string]$ActualHost,
         [bool]$IsDedicatedVps,
-        [long]$NowUtcTicks = [DateTime]::UtcNow.Ticks
+        [long]$NowUtcTicks = [DateTime]::UtcNow.Ticks,
+        [bool]$IsApprovedHourTest = $false
     )
     if (-not $IsDedicatedVps) { throw 'Explicit -DedicatedVps is required.' }
     if ([string]::IsNullOrWhiteSpace($ExpectedHost) -or
@@ -27,7 +29,9 @@ function Get-FalconWatchdogSpec {
         throw 'The explicitly named VPS does not match this computer.'
     }
     if ($TargetProcessId -le 4 -or $TargetProcessId -eq $PID) { throw 'An explicit plugin process ID is required.' }
-    if ($DurationSeconds -lt 30 -or $DurationSeconds -gt 300) { throw 'Duration must be 30-300 seconds.' }
+    # Only the explicit approved hour test permits 3600s viewing plus <=300s preparation.
+    $maxDurationSeconds = if ($IsApprovedHourTest) { 3900 } else { 300 }
+    if ($DurationSeconds -lt 30 -or $DurationSeconds -gt $maxDurationSeconds) { throw 'Duration exceeds the explicitly approved finite test limit.' }
     if ([string]::IsNullOrWhiteSpace($TargetExecutablePath) -or
         $TargetExecutablePath -notmatch '^[A-Za-z]:[\\/]' -or
         $TargetExecutablePath.Substring(2).Contains(':') -or
@@ -49,6 +53,7 @@ function Get-FalconWatchdogSpec {
         Seconds = $DurationSeconds
         CloseAtSeconds = $DurationSeconds - 5
         ExpectedComputerName = $ExpectedHost
+        ApprovedHourTest = $IsApprovedHourTest
     }
 }
 
@@ -129,7 +134,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     try {
         $spec = Get-FalconWatchdogSpec -TargetProcessId $ProcessId -TargetExecutablePath $ExecutablePath `
             -ExpectedStartTicks $StartTimeUtcTicks -DurationSeconds $Seconds -ExpectedHost $ExpectedComputerName `
-            -ActualHost $env:COMPUTERNAME -IsDedicatedVps ([bool]$DedicatedVps)
+            -ActualHost $env:COMPUTERNAME -IsDedicatedVps ([bool]$DedicatedVps) -IsApprovedHourTest ([bool]$ApprovedHourTest)
         Invoke-FalconRecordingWatchdog -Spec $spec
     } catch {
         # Avoid arbitrary process/module exceptions in logs. No fallback process selection is allowed.

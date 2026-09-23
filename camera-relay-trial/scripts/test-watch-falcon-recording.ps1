@@ -18,6 +18,15 @@ $base = @{
 }
 $spec = Get-FalconWatchdogSpec @base
 Assert-True ($spec.CloseAtSeconds -eq 55) 'Graceful close must precede the deadline by five seconds.'
+$hour = $base.Clone()
+$hour.IsApprovedHourTest = $true
+foreach ($hourDuration in @(3600, 3900)) {
+    $hour.DurationSeconds = $hourDuration
+    $hourSpec = Get-FalconWatchdogSpec @hour
+    Assert-True ($hourSpec.Seconds -eq $hourDuration -and $hourSpec.CloseAtSeconds -eq ($hourDuration - 5)) 'Approved hour test must preserve its explicit finite deadline.'
+}
+$hour.DurationSeconds = 3901
+Assert-Rejected { Get-FalconWatchdogSpec @hour }
 $snapshot = [pscustomobject]@{ HasExited = $false; ProcessId = $testProcess; ExecutablePath = 'c:\dedicatedplugin\VLOCALSERVER.EXE'; StartTimeUtcTicks = $base.ExpectedStartTicks }
 Assert-True (Test-FalconWatchdogIdentity -Spec $spec -Snapshot $snapshot) 'Identity comparison must tolerate Windows path case.'
 $snapshot.StartTimeUtcTicks++
