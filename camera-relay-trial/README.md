@@ -10,7 +10,8 @@ Requirements: Windows with a graphical session, Node.js 24, FFmpeg/FFprobe with 
 - `falcon-live-hls.mjs`: finite AVI-to-HLS relay, listening only on `127.0.0.1:8898`.
 - `probe-camera-continuity.mjs`: finite observation of the local playlist.
 - `watch-falcon-recording.ps1`: emergency guardian for one explicitly identified fresh plugin process on a dedicated VPS.
-- Four `test-*` files in `scripts/`: synthetic tests; they do not connect to a camera or network.
+- Four default `test-*` suites in `scripts/`: argument/parser/guardian checks plus bounded loopback HTTP tests using synthetic playlist text; they do not contact a camera or external network.
+- Optional `test-falcon-playlist-publish.mjs`: a32second generated FFmpeg test pattern validates HTTP playlist publication and deletion beyond the13segment retention window. Set `FALCON_TEST_FFMPEG` to a separately verified local executable. It uses no real camera/media.
 - `https-preview/`: standalone password-protected acceptance-test player and loopback gate. Its README describes authentication, separate TLS preparation and cleanup. It is not automatically published by this repository.
 - Per-directory `SHA256SUMS.txt` manifests cover source/assets, excluding tools and real runtime data.
 
@@ -39,6 +40,12 @@ Once a bounded native AVI recording is active, use its actual absolute path:
 ```powershell
 node scripts/falcon-live-hls.mjs --input 'C:\CameraTrialPrivate\recording\active.avi' --output 'C:\CameraTrialPrivate\hls-01' --ffmpeg 'C:\Tools\ffmpeg\bin\ffmpeg.exe' --seconds 300
 ```
+
+The relay stores complete HLS playlists in memory. FFmpeg publishes each playlist to exact `PUT /_publish/index.m3u8` on the existing loopback-only8898 server; no additional port opens. Bodies are limited to64KiB, two seconds and one concurrent publication, validated before an atomic swap. Public gate paths cannot reach this publisher. TS files keep immutable names; after publication, the relay retains the six advertised plus seven previous segments (about26seconds for this verified2second-segment trial). Older exact TS basenames are pruned; future/temp/unrelated files are preserved. Temporary old-file locks are deferred to a later publication after bounded retries. More than64 obsolete files blocks further publication instead of silently accepting unbounded retention. These settings target this verified trial, not arbitrary GOP/duration sources.
+
+Do not read a live playlist file with PowerShell: there is no playlist file in this version. Observe sequence progression through the loopback HTTP endpoint. Windows can block replacement of open files; in-memory publication removes that file-lock collision and the stat/stream Content-Length race. FFmpeg uses `temp_file` for immutable segment publication; relay-managed deletion replaces the unsuitable mixed HTTP/local `delete_segments` behavior.
+
+After a relay restart, the old gate intentionally latches a sequence reset. A replacement gate must use only the remaining time until the originally approved expiry; restarting the relay never authorizes a new hour.
 
 In another terminal after HLS starts updating:
 
