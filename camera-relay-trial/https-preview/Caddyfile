@@ -1,0 +1,11 @@
+{
+	admin off
+	auto_https off
+}
+
+http://127.0.0.1:8890 {
+	bind 127.0.0.1
+	header Cache-Control "no-store"
+	respond /healthz "Preview locked; no media or public listener enabled." 200
+	respond "Preview disabled." 503
+}
