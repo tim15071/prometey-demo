@@ -1178,3 +1178,283 @@ content:
             label: Ответ
             type: text
             required: true
+
+  - name: "homepage"
+    label: "Главная страница и фотоальбом"
+    type: "file"
+    path: "content/homepage.json"
+    format: "json"
+    fields:
+      - name: "hero"
+        label: "Тексты пролёта"
+        type: "object"
+        description: "Редактируются надписи на трёх этапах. Сам видеопролёт и движение камеры настроены разработчиком."
+        fields:
+          - name: "intro"
+            label: "Начало — у берега"
+            type: "object"
+            fields:
+              - name: "eyebrow"
+                label: "Надпись над заголовком"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,70}$"
+                  message: "Не более 70 символов, без переноса строки."
+              - name: "titleLine1"
+                label: "Заголовок — первая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "titleLine2"
+                label: "Заголовок — вторая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "description"
+                label: "Описание"
+                type: "text"
+                required: true
+                pattern:
+                  regex: "^[\\s\\S]{1,240}$"
+                  message: "Не более 240 символов."
+                description: "Перенос строки создаёт новую строку на сайте. Короткий текст лучше читается поверх пейзажа."
+          - name: "river"
+            label: "Середина — вдоль реки"
+            type: "object"
+            fields:
+              - name: "eyebrow"
+                label: "Надпись над заголовком"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,70}$"
+                  message: "Не более 70 символов, без переноса строки."
+              - name: "titleLine1"
+                label: "Заголовок — первая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "titleLine2"
+                label: "Заголовок — вторая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "description"
+                label: "Описание"
+                type: "text"
+                required: true
+                pattern:
+                  regex: "^[\\s\\S]{1,240}$"
+                  message: "Не более 240 символов."
+                description: "Перенос строки создаёт новую строку на сайте. Короткий текст лучше читается поверх пейзажа."
+          - name: "home"
+            label: "Финал — своё место"
+            type: "object"
+            fields:
+              - name: "eyebrow"
+                label: "Надпись над заголовком"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,70}$"
+                  message: "Не более 70 символов, без переноса строки."
+              - name: "titleLine1"
+                label: "Заголовок — первая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "titleLine2"
+                label: "Заголовок — вторая строка"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,32}$"
+                  message: "Не более 32 символов, без переноса строки."
+              - name: "description"
+                label: "Описание"
+                type: "text"
+                required: true
+                pattern:
+                  regex: "^[\\s\\S]{1,240}$"
+                  message: "Не более 240 символов."
+                description: "Перенос строки создаёт новую строку на сайте. Короткий текст лучше читается поверх пейзажа."
+      - name: "album"
+        label: "Фотоальбом"
+        type: "object"
+        fields:
+          - name: "label"
+            label: "Метка над заголовком"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,40}$"
+              message: "Не более 40 символов, без переноса строки."
+          - name: "title"
+            label: "Заголовок альбома"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,60}$"
+              message: "Не более 60 символов, без переноса строки."
+          - name: "intro"
+            label: "Вступление"
+            type: "text"
+            required: true
+            pattern:
+              regex: "^[\\s\\S]{1,320}$"
+              message: "Не более 320 символов."
+          - name: "fullAlbumUrl"
+            label: "Ссылка на полный альбом"
+            type: "string"
+            description: "Необязательная HTTPS-ссылка, например на Облако Mail. Очистите поле, чтобы скрыть ссылку."
+            pattern:
+              regex: "^$|^https://[^\\s]{1,2040}$"
+              message: "Укажите HTTPS-ссылку или оставьте поле пустым."
+          - name: "items"
+            label: "Фотографии и порядок"
+            type: "object"
+            description: "До 60 фотографий. Перетаскивайте записи, чтобы менять порядок. Загрузите свою фотографию или выберите готовую. Загруженная фотография имеет приоритет. После удаления всех записей альбом останется пустым."
+            list:
+              collapsible:
+                collapsed: true
+                summary: "{title}"
+            fields:
+              - name: "published"
+                label: "Показывать в альбоме"
+                type: "boolean"
+                default: false
+                description: "Включите после заполнения записи. Скрытая запись и файл остаются в публичном хранилище; используйте только фотографии для открытого сайта."
+              - name: "builtinPhoto"
+                label: "Готовая фотография Прометея"
+                type: "select"
+                default: "custom"
+                options:
+                  values:
+                    - name: "custom"
+                      label: "Своя загруженная фотография"
+                    - name: "blue-river"
+                      label: "Десна"
+                    - name: "river-evening"
+                      label: "Вечер у реки"
+                    - name: "birch-walk"
+                      label: "Берёзовая тропа"
+                    - name: "evening-reeds"
+                      label: "Тихий берег"
+                    - name: "willow-bank"
+                      label: "Ивы у воды"
+                    - name: "golden-shore"
+                      label: "Золотой свет"
+                    - name: "autumn-river"
+                      label: "Осенние берега"
+                    - name: "summer-meadow"
+                      label: "Летний луг"
+                    - name: "winter-light"
+                      label: "Зимний день"
+                    - name: "green-river"
+                      label: "Зелёный берег"
+                    - name: "misty-river"
+                      label: "Туман над водой"
+                    - name: "sunset-meadow"
+                      label: "Вечерний луг"
+              - name: "image"
+                label: "Загрузить свою фотографию"
+                type: "image"
+                options:
+                  media: "images"
+                description: "JPG, PNG или WebP. Рекомендуется до 2 МБ и ширина 1600–2400 пикселей. Если это поле заполнено, оно заменяет выбранную готовую фотографию."
+              - name: "title"
+                label: "Название фотографии"
+                type: "string"
+                required: true
+                pattern:
+                  regex: "^[^\\r\\n]{1,80}$"
+                  message: "Не более 80 символов, без переноса строки."
+              - name: "alt"
+                label: "Описание изображения"
+                type: "text"
+                required: true
+                pattern:
+                  regex: "^[\\s\\S]{1,240}$"
+                  message: "Не более 240 символов."
+                description: "Что изображено на снимке. Этот текст доступен посетителям, использующим экранный диктор."
+              - name: "note"
+                label: "Короткая подпись"
+                type: "string"
+                pattern:
+                  regex: "^[\\s\\S]{0,120}$"
+                  message: "Не более 120 символов, без переноса строки."
+      - name: "territory"
+        label: "Заголовок карты домов"
+        type: "object"
+        fields:
+          - name: "eyebrow"
+            label: "Надпись над заголовком"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,70}$"
+              message: "Не более 70 символов, без переноса строки."
+          - name: "titleLine1"
+            label: "Заголовок — первая строка"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,32}$"
+              message: "Не более 32 символов, без переноса строки."
+          - name: "titleLine2"
+            label: "Заголовок — вторая строка"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,32}$"
+              message: "Не более 32 символов, без переноса строки."
+          - name: "description"
+            label: "Описание"
+            type: "text"
+            required: true
+            pattern:
+              regex: "^[\\s\\S]{1,240}$"
+              message: "Не более 240 символов."
+            description: "Перенос строки создаёт новую строку на сайте. Короткий текст лучше читается поверх пейзажа."
+      - name: "contacts"
+        label: "Пейзаж перед контактами"
+        type: "object"
+        fields:
+          - name: "eyebrow"
+            label: "Надпись над заголовком"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,70}$"
+              message: "Не более 70 символов, без переноса строки."
+          - name: "titleLine1"
+            label: "Заголовок — первая строка"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,32}$"
+              message: "Не более 32 символов, без переноса строки."
+          - name: "titleLine2"
+            label: "Заголовок — вторая строка"
+            type: "string"
+            required: true
+            pattern:
+              regex: "^[^\\r\\n]{1,32}$"
+              message: "Не более 32 символов, без переноса строки."
+          - name: "note"
+            label: "Подпись фотографии"
+            type: "string"
+            pattern:
+              regex: "^[\\s\\S]{0,120}$"
+              message: "Не более 120 символов, без переноса строки."
