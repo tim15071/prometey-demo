@@ -1170,6 +1170,11 @@ content:
             collapsed: true
             summary: '{question}'
         fields:
+          - name: published
+            label: Показывать на сайте
+            type: boolean
+            default: true
+            description: Выключите и сохраните, чтобы скрыть ответ. Существующие ответы без этого поля остаются видимыми.
           - name: question
             label: Вопрос
             type: string
@@ -1326,6 +1331,7 @@ content:
             type: "object"
             description: "До 60 фотографий. Перетаскивайте записи, чтобы менять порядок. Загрузите свою фотографию или выберите готовую. Загруженная фотография имеет приоритет. После удаления всех записей альбом останется пустым."
             list:
+              max: 60
               collapsible:
                 collapsed: true
                 summary: "{title}"
