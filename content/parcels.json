@@ -1,22 +1,12 @@
 {
   "debts": [
     {
-      "buildingId": "954851640",
-      "amountRub": 7985
-    }
-  ],
-  "numberCorrections": [
-    {
-      "buildingId": "1266277257",
-      "number": "246"
+      "buildingId": "954874845",
+      "amountRub": 1000
     },
     {
-      "buildingId": "1267457222",
-      "number": "242"
-    },
-    {
-      "buildingId": "1267457220",
-      "number": "55"
+      "buildingId": "954874855",
+      "amountRub": 2000
     }
   ]
 }
