@@ -2,11 +2,11 @@
   "items": [
     {
       "id": "2cbce8e9-cb33-4676-bfe1-1b024e3beadc",
-      "title": "Как пользоваться сайтом «Прометей»",
+      "title": "Как редактировать сайт «Прометей»",
       "category": "Другое",
       "date": "2026-09-12",
-      "description": "Памятка по разделам, скачиванию файлов и управлению сайтом. Не является документом правления.",
-      "url": "/prometey-demo/uploads/documents/site-guide.txt",
+      "description": "Инструкция по документам, фотографиям, новостям и задолженности. Памятка редактора сайта.",
+      "url": "/prometey-demo/uploads/documents/prometey-editor-instruction.pdf",
       "published": true
     }
   ]
